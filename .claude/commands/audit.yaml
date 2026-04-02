@@ -1,0 +1,10 @@
+mode: agent
+
+meta:
+  task_type: analysis
+
+input_schema:
+  target: string
+
+output_schema:
+  issues: list

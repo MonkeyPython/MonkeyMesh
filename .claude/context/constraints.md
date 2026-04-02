@@ -1,0 +1,3 @@
+- Python async typed
+- Deterministic
+- No heavy frameworks

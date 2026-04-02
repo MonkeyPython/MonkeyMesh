@@ -1,0 +1,10 @@
+mode: agent
+
+meta:
+  task_type: code
+
+input_schema:
+  feature_spec: string
+
+output_schema:
+  code: string
