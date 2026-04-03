@@ -1,33 +1,16 @@
-# CLAUDE SYSTEM (V9)
 
-## Goal
-Correct results with minimal tokens.
+# Monkey Mesh
 
-## Modes
-
-### direct (default)
-- single-step
-- no agents
-
-### agent
-- use one agent
-- structured tasks only
+Multi-LLM routing system.
 
 ## Rules
-- Keep context minimal
-- Prefer direct execution
-- Use agent only for structured tasks
-- Plan briefly before complex tasks
+- Use router for model selection
+- Use llm_gateway for all LLM calls
+- Always trace with Langfuse
+- Keep code simple and typed
+- Create a new git branch before coding
+- Make atomic commits per topic
+- NEVER include co-authored-by in commits
 
-## Model Policy
-- haiku: large/simple tasks
-- sonnet: default (code, structured)
-- opus: only if necessary
-
-## Validation
-- Must follow schema
-- Must respect constraints
-
-## Output
-- Only result
-- No verbosity
+## Architecture
+API → Router → Gateway → Models
