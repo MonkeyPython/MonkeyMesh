@@ -1,9 +1,22 @@
+from backend.models.requests import ChatRequest
 from backend.models.responses import RouterDecision
 from backend.config import settings
 
 
-def route(complexity: str) -> RouterDecision:
-    match complexity:
+def route(request: ChatRequest) -> RouterDecision:
+    return _rule_based_route(request)
+
+
+def _rule_based_route(request: ChatRequest) -> RouterDecision:
+    # Cost-sensitive requests always go local unless complexity is high
+    if request.cost_sensitive and request.complexity != "high":
+        return RouterDecision(
+            model=settings.low_complexity_model,
+            reason="Cost-sensitive request routed to local model",
+            confidence=0.9,
+        )
+
+    match request.complexity:
         case "low":
             return RouterDecision(
                 model=settings.low_complexity_model,

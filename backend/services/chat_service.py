@@ -8,15 +8,29 @@ from backend.observability.tracer import trace, start_trace, span
 
 
 async def handle_chat(request: ChatRequest) -> ChatResponse:
-    trace("chat_request", {"message": request.message, "complexity": request.complexity})
+    trace("chat_request", {
+        "message": request.message,
+        "task_type": request.task_type,
+        "complexity": request.complexity,
+        "cost_sensitive": request.cost_sensitive,
+    })
 
     lf_trace = start_trace(
         name="chat",
-        input={"message": request.message, "complexity": request.complexity},
+        input={
+            "message": request.message,
+            "task_type": request.task_type,
+            "complexity": request.complexity,
+            "cost_sensitive": request.cost_sensitive,
+        },
     )
 
-    with span(lf_trace, "router", input={"complexity": request.complexity}) as router_span:
-        decision = route(request.complexity)
+    with span(lf_trace, "router", input={
+        "complexity": request.complexity,
+        "task_type": request.task_type,
+        "cost_sensitive": request.cost_sensitive,
+    }) as router_span:
+        decision = route(request)
         router_span.update(
             output={"model": decision.model, "reason": decision.reason, "confidence": decision.confidence}
         )
