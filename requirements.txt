@@ -3,3 +3,4 @@ uvicorn>=0.30.0
 pydantic>=2.0.0
 litellm>=1.40.0
 langfuse>=2.0.0
+aiofiles>=23.0.0
