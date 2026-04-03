@@ -1,12 +1,13 @@
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.models.requests import ChatRequest
 from backend.models.responses import ChatResponse
 from backend.services.chat_service import handle_chat
+from backend.observability.tracer import trace
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
@@ -22,6 +23,7 @@ async def index() -> FileResponse:
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
+    trace("api_request", {"path": "/chat", "complexity": request.complexity, "task_type": request.task_type})
     return await handle_chat(request)
 
 
