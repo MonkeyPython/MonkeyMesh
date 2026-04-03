@@ -4,6 +4,9 @@ from backend.config import settings
 
 
 def route(request: ChatRequest) -> RouterDecision:
+    # TODO(ml-routing): replace _rule_based_route with an ML model call once
+    # enough evaluation data is collected. Keep this function as the single
+    # entry point so callers never change.
     return _rule_based_route(request)
 
 

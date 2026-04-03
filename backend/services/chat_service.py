@@ -8,6 +8,9 @@ from backend.observability.tracer import trace, start_trace, span
 
 
 async def handle_chat(request: ChatRequest) -> ChatResponse:
+    # TODO(caching): compute a cache key here from (message, complexity,
+    # task_type) and return a cached ChatResponse early on hit.
+
     trace("chat_request", {
         "message": request.message,
         "task_type": request.task_type,
@@ -47,5 +50,8 @@ async def handle_chat(request: ChatRequest) -> ChatResponse:
         output={"reply": reply, "model_used": decision.model},
         metadata={"latency_ms": latency_ms},
     )
+
+    # TODO(evaluation): after returning, push (request, reply, decision) to an
+    # async evaluation queue for human or automated quality review.
 
     return ChatResponse(reply=reply, model_used=decision.model, router_decision=decision)
