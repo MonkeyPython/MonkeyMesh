@@ -2,6 +2,7 @@ import time
 
 from backend.models.requests import ChatRequest
 from backend.models.responses import ChatResponse
+from backend.models.gateway import LLMRequest
 from backend.router import route
 from backend.llm_gateway import call_llm
 from backend.observability.tracer import trace, start_trace, span
@@ -40,18 +41,20 @@ async def handle_chat(request: ChatRequest) -> ChatResponse:
 
     trace("router_decision", {"model": decision.model, "reason": decision.reason})
 
+    llm_request = LLMRequest(model=decision.model, message=request.message)
+
     t0 = time.perf_counter()
-    with span(lf_trace, "llm_call", input={"model": decision.model, "message": request.message}) as llm_span:
-        reply = await call_llm(decision, request.message)
+    with span(lf_trace, "llm_call", input={"model": llm_request.model, "message": llm_request.message}) as llm_span:
+        llm_response = await call_llm(llm_request)
         latency_ms = round((time.perf_counter() - t0) * 1000, 2)
-        llm_span.update(output={"reply": reply}, metadata={"latency_ms": latency_ms})
+        llm_span.update(output={"reply": llm_response.reply}, metadata={"latency_ms": latency_ms})
 
     lf_trace.update(
-        output={"reply": reply, "model_used": decision.model},
+        output={"reply": llm_response.reply, "model_used": llm_response.model},
         metadata={"latency_ms": latency_ms},
     )
 
-    # TODO(evaluation): after returning, push (request, reply, decision) to an
-    # async evaluation queue for human or automated quality review.
+    # TODO(evaluation): after returning, push (request, llm_response, decision)
+    # to an async evaluation queue for human or automated quality review.
 
-    return ChatResponse(reply=reply, model_used=decision.model, router_decision=decision)
+    return ChatResponse(reply=llm_response.reply, model_used=llm_response.model, router_decision=decision)

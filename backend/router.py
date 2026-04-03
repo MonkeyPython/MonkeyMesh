@@ -1,5 +1,5 @@
 from backend.models.requests import ChatRequest
-from backend.models.responses import RouterDecision
+from backend.models.routing import RouterDecision
 from backend.config import settings
 
 

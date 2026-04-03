@@ -1,34 +1,35 @@
 import litellm
-from backend.models.responses import RouterDecision
+from backend.models.gateway import LLMRequest, LLMResponse
 from backend.observability.tracer import trace
 
 litellm.drop_params = True
 
 
-async def call_llm(decision: RouterDecision, message: str) -> str:
+async def call_llm(request: LLMRequest) -> LLMResponse:
     # TODO(caching): before calling the model, check a cache keyed on
-    # (decision.model, hash(message)). Return cached reply on hit.
+    # (request.model, hash(request.message)). Return cached LLMResponse on hit.
     # Use Redis or an in-memory TTL cache (e.g. cachetools.TTLCache).
 
-    trace("llm_call", {"model": decision.model, "message": message})
+    trace("llm_call", {"model": request.model, "message": request.message})
 
     try:
-        response = await litellm.acompletion(
-            model=decision.model,
-            messages=[{"role": "user", "content": message}],
+        raw = await litellm.acompletion(
+            model=request.model,
+            messages=[{"role": "user", "content": request.message}],
         )
-        reply: str = response.choices[0].message.content
-    except Exception as primary_exc:
+        reply: str = raw.choices[0].message.content
+    except Exception as exc:
         # TODO(fallback): implement a fallback chain here.
         # Example: if primary model fails, retry with settings.fallback_model.
         # Log the failure to Langfuse before re-raising.
-        trace("llm_error", {"model": decision.model, "error": str(primary_exc)})
+        trace("llm_error", {"model": request.model, "error": str(exc)})
         raise
 
-    # TODO(caching): store (decision.model, hash(message)) → reply in cache.
+    # TODO(caching): store (request.model, hash(request.message)) → reply in cache.
 
-    # TODO(evaluation): emit (message, reply, decision.model) to an evaluation
-    # pipeline (e.g. Langfuse dataset, async queue) for quality scoring.
+    # TODO(evaluation): emit (request, reply) to an evaluation pipeline
+    # (e.g. Langfuse dataset, async queue) for quality scoring.
 
-    trace("llm_response", {"model": decision.model, "reply": reply})
-    return reply
+    response = LLMResponse(model=request.model, reply=reply)
+    trace("llm_response", {"model": response.model, "reply": response.reply})
+    return response
