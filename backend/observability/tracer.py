@@ -24,23 +24,23 @@ def get_langfuse() -> Langfuse:
     return _langfuse
 
 
-def trace(event: str, data: dict) -> None:
+def trace(event: str, data: dict[str, object]) -> None:
     logger.info({"event": event, **data})
 
 
-def start_trace(name: str, input: dict) -> StatefulTraceClient:
+def start_trace(name: str, data: dict[str, object]) -> StatefulTraceClient:
     lf = get_langfuse()
-    return lf.trace(name=name, input=input)
+    return lf.trace(name=name, input=data)
 
 
 @contextmanager
 def span(
     trace_client: StatefulTraceClient,
     name: str,
-    input: dict,
+    data: dict[str, object],
 ) -> Generator[StatefulSpanClient, None, None]:
     start = time.perf_counter()
-    s = trace_client.span(name=name, input=input)
+    s = trace_client.span(name=name, input=data)
     try:
         yield s
     finally:

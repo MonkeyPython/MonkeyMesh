@@ -21,7 +21,7 @@ async def handle_chat(request: ChatRequest) -> ChatResponse:
 
     lf_trace = start_trace(
         name="chat",
-        input={
+        data={
             "message": request.message,
             "task_type": request.task_type,
             "complexity": request.complexity,
@@ -29,7 +29,7 @@ async def handle_chat(request: ChatRequest) -> ChatResponse:
         },
     )
 
-    with span(lf_trace, "router", input={
+    with span(lf_trace, "router", data={
         "complexity": request.complexity,
         "task_type": request.task_type,
         "cost_sensitive": request.cost_sensitive,
@@ -43,16 +43,11 @@ async def handle_chat(request: ChatRequest) -> ChatResponse:
 
     llm_request = LLMRequest(model=decision.model, message=request.message)
 
-    t0 = time.perf_counter()
-    with span(lf_trace, "llm_call", input={"model": llm_request.model, "message": llm_request.message}) as llm_span:
+    with span(lf_trace, "llm_call", data={"model": llm_request.model, "message": llm_request.message}) as llm_span:
         llm_response = await call_llm(llm_request)
-        latency_ms = round((time.perf_counter() - t0) * 1000, 2)
-        llm_span.update(output={"reply": llm_response.reply}, metadata={"latency_ms": latency_ms})
+        llm_span.update(output={"reply": llm_response.reply})
 
-    lf_trace.update(
-        output={"reply": llm_response.reply, "model_used": llm_response.model},
-        metadata={"latency_ms": latency_ms},
-    )
+    lf_trace.update(output={"reply": llm_response.reply, "model_used": llm_response.model})
 
     # TODO(evaluation): after returning, push (request, llm_response, decision)
     # to an async evaluation queue for human or automated quality review.
