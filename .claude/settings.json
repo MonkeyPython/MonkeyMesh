@@ -1,0 +1,6 @@
+
+{
+  "model": "claude-sonnet-4",
+  "maxTokens": 1500,
+  "temperature": 0.2
+}
