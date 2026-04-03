@@ -2,35 +2,39 @@
 
 ## Requirements
 
-- Python 3.11+
-- [Ollama](https://ollama.ai) running locally (for low/medium complexity models)
+- Docker + Docker Compose
 - Langfuse account (for tracing)
-
-## Install
-
-```bash
-pip install -r requirements.txt
-```
 
 ## Environment variables
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `LANGFUSE_PUBLIC_KEY` | Yes | — | Langfuse project public key |
-| `LANGFUSE_SECRET_KEY` | Yes | — | Langfuse project secret key |
-| `LANGFUSE_HOST` | No | `https://cloud.langfuse.com` | Langfuse host |
+Create a `.env` file at the project root:
 
-## Run
+```env
+LANGFUSE_PUBLIC_KEY=your_public_key
+LANGFUSE_SECRET_KEY=your_secret_key
+LANGFUSE_HOST=https://cloud.langfuse.com  # optional
+```
+
+## Run with Docker Compose
 
 ```bash
+docker compose -f infra/docker-compose.yml up --build
+```
+
+- API + UI: `http://localhost:8000`
+- Ollama: `http://localhost:11434`
+
+## Pull local models (first time)
+
+```bash
+docker compose -f infra/docker-compose.yml exec ollama ollama pull mistral
+```
+
+## Run without Docker (development)
+
+```bash
+pip install -r requirements.txt
 uvicorn backend.main:app --reload
 ```
 
-API available at `http://localhost:8000`.
-UI available at `http://localhost:8000/`.
-
-## Local models (Ollama)
-
-```bash
-ollama pull mistral
-```
+Requires Ollama running locally on port `11434`.

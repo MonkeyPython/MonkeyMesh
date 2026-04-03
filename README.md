@@ -12,11 +12,11 @@ Multi-LLM routing system — local-first, cost-aware, fully observable.
 ## Quick start
 
 ```bash
-pip install -r requirements.txt
-uvicorn backend.main:app --reload
+cp .env.example .env  # fill in Langfuse keys
+docker compose -f infra/docker-compose.yml up --build
 ```
 
-See [docs/setup.md](docs/setup.md) for full setup instructions.
+API + UI at `http://localhost:8000`. See [docs/setup.md](docs/setup.md) for full instructions.
 
 ## Docs
 
